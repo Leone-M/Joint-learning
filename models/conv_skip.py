@@ -17,11 +17,11 @@ class EncoderBlock(nn.Module):
     return x
     
 class EncoderHead(nn.Module):
-  def __init__(self, dropout) -> None:
+  def __init__(self, dropout, shared_fc) -> None:
     super().__init__()
     # готовим перед полносвязным слоем
     self.global_avg_pool = nn.AdaptiveAvgPool2d(output_size=1)
-    self.fc = nn.Linear(128, 10)
+    self.fc = shared_fc
     self.dropout = nn.Dropout(dropout)
     self.softmax = nn.Softmax(dim=1)
     
@@ -54,9 +54,9 @@ class DecoderBlock(nn.Module):
     return x
   
 class DecoderBottleNeck(nn.Module):
-  def __init__(self, in_ch, out_ch) -> None:
+  def __init__(self, in_ch, out_ch, shared_fc) -> None:
     super().__init__()
-    self.fc = nn.Linear(in_ch, out_ch)
+    self.fc = shared_fc
     self.relu = nn.ReLU(inplace=True)
     
   def forward(self, x):
@@ -69,11 +69,13 @@ class DecoderBottleNeck(nn.Module):
 class UNetWithSkipConnections(nn.Module):
   def __init__(self) -> None:
     super().__init__()
+    self.shared_fc = nn.Linear(128, 128)
+    self.classifier = nn.Linear(128, 10)
     self.encoder1 = EncoderBlock(in_ch=1, out_ch=64, kernel=7, stride=2, padding=3, dropout=0.2)
     self.encoder2 = EncoderBlock(in_ch=64, out_ch=128, kernel=3, stride=2, padding=1, dropout=0.2)
-    self.encoderHead = EncoderHead(dropout=0.2)
+    self.encoderHead = EncoderHead(dropout=0.2, shared_fc=self.shared_fc)
     
-    self.decoderHead = DecoderBottleNeck(in_ch=10, out_ch=128)
+    self.decoderHead = DecoderBottleNeck(in_ch=10, out_ch=128, shared_fc=self.shared_fc)
     self.decoder1 = DecoderBlock(in_ch=128, out_ch=64, kernel=7, stride=1, padding=1, first_block=True)
     self.decoder2 = DecoderBlock(in_ch=64, out_ch=32, kernel=5, stride=1, padding=2, scale=2)
     self.decoder3 = DecoderBlock(in_ch=32, out_ch=1, kernel=3, stride=1, padding=1, scale=2)
@@ -84,14 +86,14 @@ class UNetWithSkipConnections(nn.Module):
     skip_1 = x
     x = self.encoder2(x)
     skip_2 = x
-    x = self.encoderHead(x)
-    enc_out = x
+    enc_feat = self.encoderHead(x)
+    logits = self.classifier(enc_feat)
     # Decoder
-    x = self.decoderHead(x)
+    x = self.decoderHead(enc_feat)
     x = self.decoder1(x, skip_2)
     x = self.decoder2(x, skip_1)
     x = self.decoder3(x)
-    return enc_out, x
+    return logits, x
   
 def unet_model(device):
   unet_model = UNetWithSkipConnections().to(device)

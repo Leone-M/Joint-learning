@@ -241,5 +241,31 @@ class AutoEncoder(nn.Module):
   
 def trans_model(device):
   trans_model = AutoEncoder(img_size=28, patch_size=7, in_ch=1,
-                          embed_dims=128, enc_heads=2, dec_heads=2).to(device)
+                          embed_dims=128, enc_heads=2, dec_heads=2)
+
+# удобные переменные
+  p = trans_model.patch_size = trans_model.img_size // (trans_model.img_size // 7)  # не обязательно; используйте known patch_size
+  patch_size = trans_model.patch_size if hasattr(trans_model, "patch_size") else 7
+  in_ch = trans_model.in_ch if hasattr(trans_model, "in_ch") else 1
+  embed_dim = trans_model.encoder.patch_embed.proj_layer.out_channels  # = embed_dims
+  patch_dim = in_ch * patch_size * patch_size  # должна совпадать с decoder.to_patch.out_features
+
+  # 1) берем conv weight: shape (embed_dim, in_ch, p, p)
+  conv_w = trans_model.encoder.patch_embed.proj_layer.weight  # nn.Parameter
+
+  # 2) приводим к форме (patch_dim, embed_dim) — для decoder.to_patch (out_features=patch_dim, in_features=embed_dim)
+  # сначала (embed_dim, in_ch, p, p) -> (embed_dim, patch_dim)
+  conv_w_flat = conv_w.view(embed_dim, -1)          # (embed_dim, patch_dim)
+  tied_w = conv_w_flat.transpose(0, 1).contiguous() # (patch_dim, embed_dim)
+
+  # 3) присваиваем как параметр decoder.to_patch.weight
+  trans_model.decoder.to_patch.weight = nn.Parameter(tied_w)
+
+  # (опционально) если есть bias у to_patch, можно оставить или установить в None
+  # model.decoder.to_patch.bias = nn.Parameter(torch.zeros(patch_dim))
+
+  # Перенести на устройство и инициализировать optimizer после этого
+  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  trans_model.to(device)
+  
   return trans_model

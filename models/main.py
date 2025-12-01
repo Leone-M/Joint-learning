@@ -7,8 +7,8 @@ from transformer import trans_model
 import data_load
 
 LAMBDA = [0, 0.1, 0.5, 1.0]
-LR = 0.001
-BETAS = (0.85, 0.9)
+LR = 0.002
+BETAS = (0.9, 0.99)
 BATCH_SIZE = 256
 EPOCHS = 75
 

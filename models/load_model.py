@@ -15,9 +15,11 @@ def load_model(model_path, model_type: Models):
   
   checkpoint = torch.load(model_path)
   
-  lmbd = checkpoint.get('lmbd', 0)
-  betas = checkpoint.get('betas', (0.85, 0.9))
-  learning_rate = checkpoint.get('lr', 0.001)
+  # ставлю нереалистичные цифры чтобы вместо ошибки
+  # всё сработало, но я мог понять что в сохранении чекпоинта что-то не так было
+  lmbd = checkpoint.get('lmbd', 10)
+  betas = checkpoint.get('betas', (1, 1))
+  learning_rate = checkpoint.get('lr', 1)
   
   optim = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=betas)
   
