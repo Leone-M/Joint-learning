@@ -40,7 +40,7 @@ def train_loop(model, dataloader, optim, enc_crit, dec_crit, lmbd, device="cpu")
     
     # обновляем метрики
     total_enc_loss += enc_loss.item()
-    total_dec_loss += dec_loss.item()
+    total_dec_loss += lmbd * dec_loss.item()
     
     # общий лосс
     total_loss = enc_loss + lmbd * dec_loss

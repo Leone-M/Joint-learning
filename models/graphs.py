@@ -85,7 +85,7 @@ def plot_lambdas(checkpoints: list[str], model_type: Models):
   if len(checkpoints) != 4:
     raise ValueError("Expected 4 checkpoints for different lambdas")
   
-  data = {"0": None, "0.1": None, "0.5": None, "1": None}
+  data = {"0": None, "1.0": None, "5.0": None, "10.0": None}
   
   # Если чекпоинты не в порядке возрастания лямбда
   # То на запускающего код насылается проклятие
@@ -111,6 +111,9 @@ def plot_lambdas(checkpoints: list[str], model_type: Models):
   os.makedirs(subdir, exist_ok=True)
   
   out_path = os.path.join(subdir, 'Lambda_comparison.png')
+  
+  acc_min = 0.58
+  acc_max = 0.96
   
   plt.figure(figsize=(16, 14))
   for idx, (key, metrics) in enumerate(data.items()):
@@ -154,14 +157,14 @@ def plot_lambdas(checkpoints: list[str], model_type: Models):
   plt.show()
 
 plot_metrics(model_path=
-             './checkpoints_conv/75_CHECKPOINT_LMBD0_LR0.002_BETAS(0.9, 0.99).pth',
-             model_type=Models.CNN)
+             './checkpoints_transform/75_CHECKPOINT_LMBD10.0_LR0.002_BETAS(0.9, 0.99).pth',
+             model_type=Models.TRANSFORMER)
 
 checkpoint_comparison = [
-  './checkpoints_conv/75_CHECKPOINT_LMBD0_LR0.002_BETAS(0.9, 0.99).pth',
-  './checkpoints_conv/75_CHECKPOINT_LMBD0.1_LR0.002_BETAS(0.9, 0.99).pth',
-  './checkpoints_conv/75_CHECKPOINT_LMBD0.5_LR0.002_BETAS(0.9, 0.99).pth',
-  './checkpoints_conv/75_CHECKPOINT_LMBD1.0_LR0.002_BETAS(0.9, 0.99).pth'
+  './checkpoints_transform/75_CHECKPOINT_LMBD0_LR0.002_BETAS(0.9, 0.99).pth',
+  './checkpoints_transform/75_CHECKPOINT_LMBD1.0_LR0.002_BETAS(0.9, 0.99).pth',
+  './checkpoints_transform/75_CHECKPOINT_LMBD5.0_LR0.002_BETAS(0.9, 0.99).pth',
+  './checkpoints_transform/75_CHECKPOINT_LMBD10.0_LR0.002_BETAS(0.9, 0.99).pth'
 ]
 
-plot_lambdas(checkpoint_comparison, Models.CNN)
+plot_lambdas(checkpoint_comparison, Models.TRANSFORMER)
