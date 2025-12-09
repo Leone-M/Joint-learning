@@ -3,7 +3,7 @@ import re
 import torch
 import os
 
-def load_model(model_path, model_type: Models):  
+def load_model(model_path, model_type: Models, device='cpu'):  
   if model_type  == Models.CNN:
     from conv import conv_model as model_class
   elif model_type == Models.CNN_RESNET:
@@ -11,7 +11,7 @@ def load_model(model_path, model_type: Models):
   else: 
     from transformer import trans_model as model_class 
   
-  model = model_class(device='cuda')
+  model = model_class(device=device)
   
   checkpoint = torch.load(model_path)
   

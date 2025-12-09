@@ -6,7 +6,7 @@ from conv_skip import unet_model
 from transformer import trans_model
 import data_load
 
-LAMBDA = [0, 1.0, 5.0, 10.0]
+LAMBDA = [0, 20.0, 80.0, 150.0]
 LR = 0.002
 BETAS = (0.9, 0.99)
 BATCH_SIZE = 256
